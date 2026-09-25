@@ -1,0 +1,97 @@
+name: Daily Automation
+
+on:
+  schedule:
+    # 7:00 AM IST
+    - cron: "30 1 * * *"
+
+    # 7:30 AM IST
+    - cron: "0 2 * * *"
+
+    # 8:00 AM IST
+    - cron: "30 2 * * *"
+
+    # 8:15 AM IST
+    - cron: "45 2 * * *"
+
+    # 6:00 PM IST
+    - cron: "30 12 * * *"
+
+    # 7:00 PM IST
+    - cron: "30 13 * * *"
+
+    # 9:00 PM IST
+    - cron: "30 15 * * *"
+
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Which task do you want to run?"
+        required: true
+        type: choice
+        options:
+          - morning
+          - english
+          - exercise
+          - build
+          - games
+          - focus
+          - countdown
+
+jobs:
+  run:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Get code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Choose task
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          MANUAL_TASK: ${{ inputs.task }}
+        run: |
+          if [ -n "$MANUAL_TASK" ]; then
+            echo "TASK=$MANUAL_TASK" >> "$GITHUB_ENV"
+          else
+            case "$SCHEDULE" in
+              "30 1 * * *")
+                echo "TASK=morning" >> "$GITHUB_ENV"
+                ;;
+              "0 2 * * *")
+                echo "TASK=english" >> "$GITHUB_ENV"
+                ;;
+              "30 2 * * *")
+                echo "TASK=exercise" >> "$GITHUB_ENV"
+                ;;
+              "45 2 * * *")
+                echo "TASK=build" >> "$GITHUB_ENV"
+                ;;
+              "30 12 * * *")
+                echo "TASK=games" >> "$GITHUB_ENV"
+                ;;
+              "30 13 * * *")
+                echo "TASK=focus" >> "$GITHUB_ENV"
+                ;;
+              "30 15 * * *")
+                echo "TASK=countdown" >> "$GITHUB_ENV"
+                ;;
+            esac
+          fi
+
+      - name: Run Python automation
+        env:
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python Automation.py

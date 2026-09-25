@@ -1,15 +1,41 @@
 from datetime import date
 import smtplib
-import schedule
-import time
-from email.message import EmailMessage
 import os
+from email.message import EmailMessage
+
+
+# ==========================================
+# EMAIL SETTINGS
+# ==========================================
 
 sender = os.environ["SENDER_EMAIL"]
 receiver = os.environ["RECEIVER_EMAIL"]
 password = os.environ["GMAIL_APP_PASSWORD"]
 
 
+# ==========================================
+# SEND EMAIL
+# ==========================================
+
+def send_email(subject, message):
+    msg = EmailMessage()
+
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg["To"] = receiver
+
+    msg.set_content(message)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(sender, password)
+        smtp.send_message(msg)
+
+    print(f"Email sent: {subject}")
+
+
+# ==========================================
+# COUNTDOWN TO 2027
+# ==========================================
 
 def days_until_2027():
     today = date.today()
@@ -32,22 +58,6 @@ Keep improving.
 Make every day count. 🔥
 """
     )
-
-
-def send_email(subject, message):
-    msg = EmailMessage()
-
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = receiver
-
-    msg.set_content(message)
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(sender, password)
-        smtp.send_message(msg)
-
-    print(f"Email sent: {subject}")
 
 
 # ==========================================
@@ -198,25 +208,31 @@ Let's get it done. 🔥
 
 
 # ==========================================
-# DAILY SCHEDULE
+# CHOOSE WHICH TASK TO RUN
 # ==========================================
-schedule.every().day.at("21:00").do(days_until_2027)
-schedule.every().day.at("07:00").do(morning_routine)
 
-schedule.every().day.at("07:30").do(english_practice)
+task = os.environ.get("TASK")
 
-schedule.every().day.at("08:00").do(exercise_or_game)
+if task == "morning":
+    morning_routine()
 
-schedule.every().day.at("08:15").do(build_something)
+elif task == "english":
+    english_practice()
 
-schedule.every().day.at("18:00").do(college_games)
+elif task == "exercise":
+    exercise_or_game()
 
-schedule.every().day.at("19:00").do(evening_focus)
+elif task == "build":
+    build_something()
 
+elif task == "games":
+    college_games()
 
+elif task == "focus":
+    evening_focus()
 
+elif task == "countdown":
+    days_until_2027()
 
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+else:
+    print("No valid TASK was provided.")
